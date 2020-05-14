@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebMol</title>
+        <style>
+            body {
+                margin: 0px;
+            }
+            canvas {
+                display: block;
+            }
+            #options-sheet {
+                position: absolute;
+                top: 0;
+                left: 0;
+                background-color: rgba(255, 255, 255, 0.7);
+            }
+        </style>
+    </head>
+    <body>
+        <script src="three.js"></script>
+        <script src="orbit_controls.js"></script>
+        <script src="buffer_geometry_utils.js"></script>
+        <script src="index.js"></script>
+        <div id="options-sheet">
+            <label>Upload PDB file:</label>
+            <input type="file" id="upload-pdb">
+        </div>
+        <script src="read_pdb.js"></script>
+    </body>
+</html>
