@@ -23,9 +23,6 @@ var cube = new THREE.Mesh(geometry, material);
 cube.receiveShadow = true;
 scene.add(cube);
 
-// add sphere
-var sphere = new THREE.SphereBufferGeometry(0.5);
-
 // add lighting
 dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
 dirLight.color.setHSL( 0.1, 1, 0.95 );

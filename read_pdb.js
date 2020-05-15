@@ -1,13 +1,22 @@
 function readPDB() {
     const file = this.files[0];
     if (!file) return;
-    
+
     const reader = new FileReader();
     reader.onload = evt => processPDB(evt.target.result);
     reader.readAsText(file);
 }
 
 function processPDB(text) {
+    const MATERIAL_MAP = {
+        'C': [0x00, 0x00, 0x00],
+        'H': [0xff, 0xff, 0xff],
+        'O': [0xff, 0x00, 0x00],
+        'N': [0x00, 0x00, 0xff],
+        'P': [0xff, 0x88, 0x00],
+        'S': [0xff, 0xff, 0x00],
+    }
+
     const lines = text.split('\n');
     const atoms = lines
         .filter(line => line.startsWith('ATOM'))
@@ -17,8 +26,28 @@ function processPDB(text) {
             x: Number.parseFloat(line.substring(30, 38)),
             y: Number.parseFloat(line.substring(38, 46)),
             z: Number.parseFloat(line.substring(46, 54)),
-        }));
-    atoms.forEach(renderAtom);
+        }))
+        .map((atom) => {
+            var sphere = new THREE.SphereBufferGeometry(0.5);
+            sphere.translate(atom.x, atom.y, atom.z);
+             // calculate colors
+            const numVerts = sphere.getAttribute('position').count;
+            const itemSize = 3; // r, g, b
+            let colors = new Uint8Array(itemSize * numVerts);
+            colors = colors.map((_, idx) => MATERIAL_MAP[atom.element][idx % 3]);
+            const colorAttrib = new THREE.BufferAttribute(colors, itemSize, true);
+            sphere.setAttribute('color', colorAttrib);
+            return sphere;
+        });
+
+    // make merged geometry
+    const mergedGeom = THREE.BufferGeometryUtils.mergeBufferGeometries(atoms, false);
+    const mat = new THREE.MeshLambertMaterial({vertexColors: THREE.VertexColors});
+    const mesh = new THREE.Mesh(mergedGeom, mat);
+    scene.add(mesh);
+    
+    // update scene
+    render();
 }
 
 function getCharge(chgStr) {
@@ -28,19 +57,6 @@ function getCharge(chgStr) {
     // convert string to number
     if (chgStr === '  ') return 0;
     return Number.parseInt(chgStr[1]+chgStr[0]);
-}
-
-function renderAtom(atom) {
-    const materialMap = {
-        'C': carbon,
-        'N': nitrogen,
-        'O': oxygen,
-        'P': phosphorus,
-        'H': hydrogen,
-    }
-    var atomSphere = new THREE.Mesh(sphere, materialMap[atom.element]);
-    atomSphere.position.set(atom.x, atom.y, atom.z);
-    scene.add(atomSphere);
 }
 
 document.getElementById('upload-pdb').addEventListener('change', readPDB);
