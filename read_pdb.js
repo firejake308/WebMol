@@ -17,6 +17,8 @@ function processPDB(text) {
         'S': [0xff, 0xff, 0x00],
     }
 
+    const modelType = document.querySelector('input[name="model"]:checked').value;
+
     const lines = text.split('\n');
     const atoms = lines
         .filter(line => line.startsWith('ATOM'))
@@ -28,16 +30,21 @@ function processPDB(text) {
             z: Number.parseFloat(line.substring(46, 54)),
         }))
         .map((atom) => {
-            var sphere = new THREE.SphereBufferGeometry(0.5);
-            sphere.translate(atom.x, atom.y, atom.z);
-             // calculate colors
-            const numVerts = sphere.getAttribute('position').count;
-            const itemSize = 3; // r, g, b
-            let colors = new Uint8Array(itemSize * numVerts);
-            colors = colors.map((_, idx) => MATERIAL_MAP[atom.element][idx % 3]);
-            const colorAttrib = new THREE.BufferAttribute(colors, itemSize, true);
-            sphere.setAttribute('color', colorAttrib);
-            return sphere;
+            switch(modelType) {
+                case 'backbone':
+                case 'space-filling':
+                default:
+                    var sphere = new THREE.SphereBufferGeometry(0.5);
+                    sphere.translate(atom.x, atom.y, atom.z);
+                     // calculate colors
+                    const numVerts = sphere.getAttribute('position').count;
+                    const itemSize = 3; // r, g, b
+                    let colors = new Uint8Array(itemSize * numVerts);
+                    colors = colors.map((_, idx) => MATERIAL_MAP[atom.element][idx % 3]);
+                    const colorAttrib = new THREE.BufferAttribute(colors, itemSize, true);
+                    sphere.setAttribute('color', colorAttrib);
+                    return sphere;   
+            }
         });
 
     // make merged geometry
