@@ -28,27 +28,39 @@ function processPDB(text) {
             x: Number.parseFloat(line.substring(30, 38)),
             y: Number.parseFloat(line.substring(38, 46)),
             z: Number.parseFloat(line.substring(46, 54)),
-        }))
-        .map((atom) => {
-            switch(modelType) {
-                case 'backbone':
-                case 'space-filling':
-                default:
-                    var sphere = new THREE.SphereBufferGeometry(0.5);
-                    sphere.translate(atom.x, atom.y, atom.z);
-                     // calculate colors
-                    const numVerts = sphere.getAttribute('position').count;
-                    const itemSize = 3; // r, g, b
-                    let colors = new Uint8Array(itemSize * numVerts);
-                    colors = colors.map((_, idx) => MATERIAL_MAP[atom.element][idx % 3]);
-                    const colorAttrib = new THREE.BufferAttribute(colors, itemSize, true);
-                    sphere.setAttribute('color', colorAttrib);
-                    return sphere;   
-            }
-        });
+        }));   
+    const geoms = atoms.map((atom) => {
+        switch(modelType) {
+            case 'backbone': {
+                var box = new THREE.BoxBufferGeometry(0.5);
+                box.translate(atom.x, atom.y, atom.z);
+                // calculate colors
+                const numVerts = box.getAttribute('position').count;
+                const itemSize = 3; // r, g, b
+                let colors = new Uint8Array(itemSize * numVerts);
+                colors = colors.map((_, idx) => MATERIAL_MAP[atom.element][idx % 3]);
+                const colorAttrib = new THREE.BufferAttribute(colors, itemSize, true);
+                box.setAttribute('color', colorAttrib);
+                return box;
+            }   
+            case 'space-filling':
+            default: {
+                var sphere = new THREE.SphereBufferGeometry(0.5);
+                sphere.translate(atom.x, atom.y, atom.z);
+                // calculate colors
+                const numVerts = sphere.getAttribute('position').count;
+                const itemSize = 3; // r, g, b
+                let colors = new Uint8Array(itemSize * numVerts);
+                colors = colors.map((_, idx) => MATERIAL_MAP[atom.element][idx % 3]);
+                const colorAttrib = new THREE.BufferAttribute(colors, itemSize, true);
+                sphere.setAttribute('color', colorAttrib);
+                return sphere;  
+            } 
+        }
+    });
 
     // make merged geometry
-    const mergedGeom = THREE.BufferGeometryUtils.mergeBufferGeometries(atoms, false);
+    const mergedGeom = THREE.BufferGeometryUtils.mergeBufferGeometries(geoms, false);
     const mat = new THREE.MeshLambertMaterial({vertexColors: THREE.VertexColors});
     const mesh = new THREE.Mesh(mergedGeom, mat);
     scene.add(mesh);
