@@ -20,17 +20,31 @@ function processPDB(text) {
     const modelType = document.querySelector('input[name="model"]:checked').value;
 
     const lines = text.split('\n');
-    const atoms = lines
+    let atoms = lines
         .filter(line => line.startsWith('ATOM'))
         .map(line => ({
             element: line.substring(76, 78).trim(),
             charge: getCharge(line.substring(78)),
+            name: line.substring(12, 16).trim(),
+            residueNum: line.substring(22, 26).trim(),
             x: Number.parseFloat(line.substring(30, 38)),
             y: Number.parseFloat(line.substring(38, 46)),
             z: Number.parseFloat(line.substring(46, 54)),
         }));  
+    let backboneMat = null;
     switch(modelType) {
-        case 'backbone': {
+        case 'backbone':
+            // filter out side chains
+            atoms = atoms.filter((atom) => /^(N)|(CA)|(C)$/.test(atom.name));
+            backboneMat = new THREE.MeshBasicMaterial({color: 0x0000ff});
+            let lastResidue = null;
+            atoms.forEach((atom) => {
+                if (lastResidue !== null && atom.residueNum - lastResidue > 1)
+                    console.log(`break between ${lastResidue} and ${atom.residueNum}`);
+                lastResidue = atom.residueNum;
+            });
+            console.log(atoms.map((atom) => atom.residueNum));
+        case 'fake-backbone': {
             let lastPoints = null;
             const geoms = [];
             for (let i = 1; i < atoms.length-1; i++) {
@@ -73,7 +87,6 @@ function processPDB(text) {
                         ...makeTri(points[3], lastPoints[3], points[0]),
                         ...makeTri(points[0], lastPoints[0], points[3]),
                     ]);
-                    console.log(verts);
                     geom.setAttribute('position', new THREE.BufferAttribute(verts, 3));
                     geoms.push(geom);
                 }
@@ -82,8 +95,8 @@ function processPDB(text) {
 
             // make merged geometry
             const mergedGeom = THREE.BufferGeometryUtils.mergeBufferGeometries(geoms, false);
-            const mat = new THREE.MeshBasicMaterial({color: 0x0000ff});
-            const mesh = new THREE.Mesh(mergedGeom, mat);
+            backboneMat = backboneMat || new THREE.MeshBasicMaterial({color: 0xff0000})
+            const mesh = new THREE.Mesh(mergedGeom, backboneMat);
             scene.add(mesh);
         }
         break;
