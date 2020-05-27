@@ -7,6 +7,9 @@ class Atom:
         self.x = x
         self.y = y
         self.z = z
+    
+    def to_vector3(self):
+        return Vector3(self.x, self.y, self.z)
 
 class Vector3:
     def __init__(self, x, y, z):
@@ -15,25 +18,28 @@ class Vector3:
         self.z = z
     
     def __add__(self, other):
-        return Vector(
+        return Vector3(
             self.x + other.x,
             self.y + other.y,
             self.z + other.z,
         )
     
     def __sub__(self, other):
-        return Vector(
+        return Vector3(
             self.x - other.x,
             self.y - other.y,
             self.z - other.z,
         )
     
     def cross(self, other):
-        return Vector(
+        return Vector3(
             self.y * other.z - self.z * other.y,
             self.z * other.x - self.x * other.z,
             self.x * other.y - self.y - other.x,
         )
+    
+    def __str__(self):
+        return f'<{self.x:.5f}, {self.y:.5f}, {self.z:.5f}>'
 
 def get_charge(charge_str):
     if len(charge_str) != 2:
