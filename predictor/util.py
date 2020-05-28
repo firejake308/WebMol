@@ -1,9 +1,11 @@
 class Atom:
-    def __init__(self, element, charge, name, residue_num, x, y, z):
+    def __init__(self, element, charge, name, residue_num, amino_acid, chain, x, y, z):
         self.element = element
         self.charge = charge
         self.name = name
         self.residue_num = residue_num
+        self.amino_acid = amino_acid
+        self.chain = chain
         self.x = x
         self.y = y
         self.z = z
