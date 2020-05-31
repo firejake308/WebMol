@@ -1,3 +1,5 @@
+import math
+
 class Atom:
     def __init__(self, element, charge, name, residue_num, amino_acid, chain, x, y, z):
         self.element = element
@@ -39,6 +41,25 @@ class Vector3:
             self.z * other.x - self.x * other.z,
             self.x * other.y - self.y - other.x,
         )
+    
+    def dot(self, other):
+        return self.x * other.x + self.y * other.y + self.z * other.z
+    
+    def normalize_(self):
+        magnitude = self.magnitude()
+        self.x /= magnitude
+        self.y /= magnitude
+        self.z /= magnitude
+    
+    def magnitude(self):
+        return math.sqrt(self.x ** 2 + self.y ** 2 + self.z ** 2)
+
+    def angle_between(self, other):
+        try:
+            return math.degrees(math.acos(self.dot(other) / self.magnitude() / other.magnitude()))
+        except ValueError:
+            intermediate = self.dot(other) / self.magnitude() / other.magnitude()
+            import pdb; pdb.set_trace()
     
     def __str__(self):
         return f'<{self.x:.5f}, {self.y:.5f}, {self.z:.5f}>'
